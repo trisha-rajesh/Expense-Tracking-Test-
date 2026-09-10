@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Expenses</title>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #fafafa;
+    --surface: #ffffff;
+    --border: #e6e6e6;
+    --text: #1a1a1a;
+    --text-muted: #8a8a8a;
+    --accent: #2f6f4f;
+    --accent-soft: #eaf3ee;
+    --danger: #b3413a;
+    --radius: 10px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Helvetica, Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .app {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  h1 {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0 0 4px;
+    letter-spacing: -0.01em;
+  }
+
+  .subtitle {
+    color: var(--text-muted);
+    font-size: 13px;
+    margin: 0 0 28px;
+  }
+
+  .summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+
+  .summary-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+  }
+
+  .summary-card .label {
+    color: var(--text-muted);
+    font-size: 12px;
+    margin-bottom: 6px;
+  }
+
+  .summary-card .value {
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .card h2 {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    margin: 0 0 16px;
+  }
+
+  form.entry {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  form.entry .full { grid-column: 1 / -1; }
+
+  label {
+    display: block;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+
+  input[type="text"],
+  input[type="number"],
+  input[type="date"],
+  select {
+    width: 100%;
+    padding: 9px 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--text);
+    font-size: 14px;
+    font-family: inherit;
+  }
+
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  .tag-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .tag-row select { flex: 1; }
+
+  .icon-btn {
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: #fff;
+    color: var(--text-muted);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .icon-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .submit-btn {
+    grid-column: 1 / -1;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 4px;
+  }
+  .submit-btn:hover { opacity: 0.9; }
+
+  .filters {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+
+  .filters select {
+    width: auto;
+    padding: 7px 10px;
+    font-size: 13px;
+  }
+
+  .clear-filters {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 13px;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  th {
+    text-align: left;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    font-weight: 600;
+    padding: 0 10px 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    padding: 10px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13.5px;
+    vertical-align: middle;
+  }
+
+  tr:last-child td { border-bottom: none; }
+
+  .amount { font-weight: 600; text-align: right; white-space: nowrap; }
+
+  .pill {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 100px;
+    font-size: 11.5px;
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+  .pill.account {
+    background: #eef1f6;
+    color: #4a5a78;
+  }
+
+  .row-actions {
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .row-actions button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 12.5px;
+    padding: 4px 6px;
+  }
+  .row-actions button:hover { color: var(--text); }
+  .row-actions .delete:hover { color: var(--danger); }
+
+  .empty {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 30px 0;
+    font-size: 13px;
+  }
+
+  .desc-cell { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <h1>Expenses</h1>
+  <p class="subtitle">Track spending by category and account.</p>
+
+  <div class="summary">
+    <div class="summary-card">
+      <div class="label">Total tracked</div>
+      <div class="value" id="sumTotal">$0.00</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">Personal / Work</div>
+      <div class="value" id="sumCategory">$0 / $0</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">Checking / Savings</div>
+      <div class="value" id="sumAccount">$0 / $0</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Add expense</h2>
+    <form class="entry" id="expenseForm">
+      <div>
+        <label for="fAmount">Amount</label>
+        <input type="number" id="fAmount" step="0.01" min="0" placeholder="0.00" required>
+      </div>
+      <div>
+        <label for="fDate">Date</label>
+        <input type="date" id="fDate" required>
+      </div>
+      <div class="full">
+        <label for="fDesc">Description</label>
+        <input type="text" id="fDesc" placeholder="e.g. Client lunch" required>
+      </div>
+      <div>
+        <label for="fCategory">Category</label>
+        <div class="tag-row">
+          <select id="fCategory"></select>
+          <button type="button" class="icon-btn" id="addCategoryBtn" title="Add label">+</button>
+        </div>
+      </div>
+      <div>
+        <label for="fAccount">Account</label>
+        <div class="tag-row">
+          <select id="fAccount"></select>
+          <button type="button" class="icon-btn" id="addAccountBtn" title="Add label">+</button>
+        </div>
+      </div>
+      <button type="submit" class="submit-btn" id="submitBtn">Add expense</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>History</h2>
+    <div class="filters">
+      <select id="filterCategory"><option value="">All categories</option></select>
+      <select id="filterAccount"><option value="">All accounts</option></select>
+      <button type="button" class="clear-filters" id="clearFilters">Clear filters</button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Description</th>
+          <th>Category</th>
+          <th>Account</th>
+          <th style="text-align:right">Amount</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="expenseRows"></tbody>
+    </table>
+    <div class="empty" id="emptyState" style="display:none">No expenses yet — add your first one above.</div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const STORAGE_KEY = 'expense-tracker-data-v1';
+
+  const defaultState = {
+    categories: ['Personal', 'Work'],
+    accounts: ['Checking Account', 'Savings Account'],
+    expenses: [],
+    editingId: null
+  };
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return structuredClone(defaultState);
+      const parsed = JSON.parse(raw);
+      return {
+        categories: parsed.categories && parsed.categories.length ? parsed.categories : defaultState.categories,
+        accounts: parsed.accounts && parsed.accounts.length ? parsed.accounts : defaultState.accounts,
+        expenses: Array.isArray(parsed.expenses) ? parsed.expenses : [],
+        editingId: null
+      };
+    } catch (e) {
+      console.error('Failed to load state', e);
+      return structuredClone(defaultState);
+    }
+  }
+
+  function save() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        categories: state.categories,
+        accounts: state.accounts,
+        expenses: state.expenses
+      }));
+    } catch (e) {
+      console.error('Failed to save state', e);
+    }
+  }
+
+  let state = load();
+  let activeFilters = { category: '', account: '' };
+
+  const fCategory = document.getElementById('fCategory');
+  const fAccount = document.getElementById('fAccount');
+  const filterCategory = document.getElementById('filterCategory');
+  const filterAccount = document.getElementById('filterAccount');
+  const expenseRows = document.getElementById('expenseRows');
+  const emptyState = document.getElementById('emptyState');
+  const submitBtn = document.getElementById('submitBtn');
+
+  function fmt(n) {
+    return '$' + Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function fillSelect(select, options, keepValue) {
+    const prev = keepValue !== undefined ? keepValue : select.value;
+    select.innerHTML = '';
+    options.forEach(opt => {
+      const o = document.createElement('option');
+      o.value = opt;
+      o.textContent = opt;
+      select.appendChild(o);
+    });
+    if (prev && options.includes(prev)) select.value = prev;
+  }
+
+  function fillFilterSelect(select, options, placeholder) {
+    const prev = select.value;
+    select.innerHTML = '';
+    const allOpt = document.createElement('option');
+    allOpt.value = '';
+    allOpt.textContent = placeholder;
+    select.appendChild(allOpt);
+    options.forEach(opt => {
+      const o = document.createElement('option');
+      o.value = opt;
+      o.textContent = opt;
+      select.appendChild(o);
+    });
+    if (prev && options.includes(prev)) select.value = prev;
+  }
+
+  function renderSelects() {
+    fillSelect(fCategory, state.categories);
+    fillSelect(fAccount, state.accounts);
+    fillFilterSelect(filterCategory, state.categories, 'All categories');
+    fillFilterSelect(filterAccount, state.accounts, 'All accounts');
+  }
+
+  function renderSummary() {
+    const total = state.expenses.reduce((s, e) => s + e.amount, 0);
+    document.getElementById('sumTotal').textContent = fmt(total);
+
+    const personal = state.expenses.filter(e => e.category === 'Personal').reduce((s, e) => s + e.amount, 0);
+    const work = state.expenses.filter(e => e.category === 'Work').reduce((s, e) => s + e.amount, 0);
+    document.getElementById('sumCategory').textContent = fmt(personal) + ' / ' + fmt(work);
+
+    const checking = state.expenses.filter(e => e.account === 'Checking Account').reduce((s, e) => s + e.amount, 0);
+    const savings = state.expenses.filter(e => e.account === 'Savings Account').reduce((s, e) => s + e.amount, 0);
+    document.getElementById('sumAccount').textContent = fmt(checking) + ' / ' + fmt(savings);
+  }
+
+  function renderRows() {
+    const rows = state.expenses
+      .filter(e => !activeFilters.category || e.category === activeFilters.category)
+      .filter(e => !activeFilters.account || e.account === activeFilters.account)
+      .sort((a, b) => (b.date || '').localeCompare(a.date || '') || b.createdAt - a.createdAt);
+
+    expenseRows.innerHTML = '';
+    emptyState.style.display = rows.length ? 'none' : 'block';
+
+    rows.forEach(e => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${e.date ? new Date(e.date + 'T00:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : ''}</td>
+        <td class="desc-cell" title="${escapeHtml(e.description)}">${escapeHtml(e.description)}</td>
+        <td><span class="pill">${escapeHtml(e.category)}</span></td>
+        <td><span class="pill account">${escapeHtml(e.account)}</span></td>
+        <td class="amount">${fmt(e.amount)}</td>
+        <td class="row-actions">
+          <button class="edit" data-id="${e.id}">Edit</button>
+          <button class="delete" data-id="${e.id}">Delete</button>
+        </td>
+      `;
+      expenseRows.appendChild(tr);
+    });
+
+    expenseRows.querySelectorAll('.delete').forEach(btn => {
+      btn.addEventListener('click', () => {
+        state.expenses = state.expenses.filter(e => e.id !== btn.dataset.id);
+        save();
+        renderAll();
+      });
+    });
+
+    expenseRows.querySelectorAll('.edit').forEach(btn => {
+      btn.addEventListener('click', () => startEdit(btn.dataset.id));
+    });
+  }
+
+  function escapeHtml(s) {
+    const div = document.createElement('div');
+    div.textContent = s == null ? '' : s;
+    return div.innerHTML;
+  }
+
+  function renderAll() {
+    renderSelects();
+    renderSummary();
+    renderRows();
+  }
+
+  function startEdit(id) {
+    const e = state.expenses.find(x => x.id === id);
+    if (!e) return;
+    state.editingId = id;
+    document.getElementById('fAmount').value = e.amount;
+    document.getElementById('fDate').value = e.date;
+    document.getElementById('fDesc').value = e.description;
+    fCategory.value = e.category;
+    fAccount.value = e.account;
+    submitBtn.textContent = 'Save changes';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  document.getElementById('expenseForm').addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    const amount = parseFloat(document.getElementById('fAmount').value);
+    const date = document.getElementById('fDate').value;
+    const description = document.getElementById('fDesc').value.trim();
+    const category = fCategory.value;
+    const account = fAccount.value;
+    if (!amount || !date || !description) return;
+
+    if (state.editingId) {
+      const e = state.expenses.find(x => x.id === state.editingId);
+      if (e) {
+        e.amount = amount; e.date = date; e.description = description;
+        e.category = category; e.account = account;
+      }
+      state.editingId = null;
+      submitBtn.textContent = 'Add expense';
+    } else {
+      state.expenses.push({
+        id: 'e_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+        amount, date, description, category, account,
+        createdAt: Date.now()
+      });
+    }
+
+    save();
+    this.reset();
+    document.getElementById('fDate').value = todayStr();
+    renderAll();
+  });
+
+  function setupAddLabel(btnId, listKey, select) {
+    document.getElementById(btnId).addEventListener('click', () => {
+      const name = prompt('New label name:');
+      if (!name) return;
+      const trimmed = name.trim();
+      if (!trimmed) return;
+      if (!state[listKey].includes(trimmed)) {
+        state[listKey].push(trimmed);
+        save();
+        renderSelects();
+      }
+      select.value = trimmed;
+    });
+  }
+
+  setupAddLabel('addCategoryBtn', 'categories', fCategory);
+  setupAddLabel('addAccountBtn', 'accounts', fAccount);
+
+  filterCategory.addEventListener('change', () => {
+    activeFilters.category = filterCategory.value;
+    renderRows();
+  });
+  filterAccount.addEventListener('change', () => {
+    activeFilters.account = filterAccount.value;
+    renderRows();
+  });
+  document.getElementById('clearFilters').addEventListener('click', () => {
+    activeFilters = { category: '', account: '' };
+    filterCategory.value = '';
+    filterAccount.value = '';
+    renderRows();
+  });
+
+  function todayStr() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  document.getElementById('fDate').value = todayStr();
+  renderAll();
+})();
+</script>
+</body>
+</html>
